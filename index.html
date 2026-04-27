@@ -1,0 +1,1292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>MyMarks— Student Mark Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg            : #f8f5ff;
+      --bg-card       : #ffffff;
+      --bg-card2      : #f2eeff;
+      --border        : #e4d8ff;
+      --purple-1      : #7c3aed;
+      --purple-2      : #9d5cf6;
+      --purple-3      : #c4a0ff;
+      --purple-light  : #ede8ff;
+      --purple-dim    : #7c3aed18;
+      --violet        : #6d28d9;
+      --pink          : #d946ef;
+      --rose          : #f43f5e;
+      --gold          : #f59e0b;
+      --green         : #10b981;
+      --text-1        : #1e0a3c;
+      --text-2        : #6b5a8a;
+      --text-3        : #a897c0;
+      --shadow-sm     : 0 2px 12px #7c3aed14;
+      --shadow        : 0 8px 32px #7c3aed1e;
+      --shadow-lg     : 0 20px 60px #7c3aed28;
+      --radius        : 20px;
+      --radius-sm     : 14px;
+      --font-display  : 'Syne', sans-serif;
+      --font-body     : 'DM Sans', sans-serif;
+    }
+
+    html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--bg);
+      color: var(--text-1);
+      min-height: 100vh;
+      min-height: -webkit-fill-available;
+      overflow-x: hidden;
+    }
+
+    /* ── Background mesh ── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse 80% 50% at 10% 0%, #ddd0ff 0%, transparent 55%),
+        radial-gradient(ellipse 60% 40% at 90% 100%, #f5d0fe 0%, transparent 50%),
+        radial-gradient(ellipse 50% 60% at 50% 50%, #ede8ff 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    /* ── Floating orbs ── */
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(70px);
+      opacity: .22;
+      pointer-events: none;
+      animation: drift 14s ease-in-out infinite alternate;
+    }
+    .orb-1 { width: 420px; height: 420px; background: #a78bfa; top: -120px; left: -100px; }
+    .orb-2 { width: 320px; height: 320px; background: #e879f9; bottom: -80px; right: -80px; animation-delay: -7s; }
+    .orb-3 { width: 200px; height: 200px; background: #818cf8; top: 40%; left: 60%; animation-delay: -3s; }
+    @keyframes drift { from { transform: translate(0,0) scale(1); } to { transform: translate(25px,18px) scale(1.05); } }
+
+    /* ── Layout ── */
+    #app {
+      position: relative;
+      z-index: 1;
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 16px 16px 80px;
+    }
+
+    /* ── Views ── */
+    .view { display: none; animation: fadeUp .45s cubic-bezier(.22,1,.36,1) both; }
+    .view.active { display: block; }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(22px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Header ── */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 0 28px;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 1.25rem;
+      color: var(--text-1);
+      text-decoration: none;
+    }
+    .logo-icon {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--purple-1), var(--pink));
+      border-radius: 10px;
+      display: grid; place-items: center;
+      font-size: 1rem;
+      box-shadow: 0 4px 14px #7c3aed40;
+    }
+    .logo-em { color: var(--purple-1); }
+    .header-pill {
+      font-size: .68rem;
+      font-weight: 600;
+      color: var(--text-2);
+      background: var(--bg-card);
+      border: 1.5px solid var(--border);
+      padding: 5px 12px;
+      border-radius: 20px;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      box-shadow: var(--shadow-sm);
+    }
+
+    /* ── Back button ── */
+    .btn-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--bg-card);
+      border: 1.5px solid var(--border);
+      color: var(--text-2);
+      font-family: var(--font-body);
+      font-size: .85rem;
+      font-weight: 600;
+      padding: 9px 16px;
+      border-radius: 30px;
+      cursor: pointer;
+      transition: all .2s;
+      margin-bottom: 12px;
+      box-shadow: var(--shadow-sm);
+    }
+    .btn-back:hover { border-color: var(--purple-1); color: var(--purple-1); background: var(--purple-light); }
+
+    /* ── Name bar (shown on sub-pages) ── */
+    .name-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg-card);
+      border: 1.5px solid var(--border);
+      border-radius: 30px;
+      padding: 7px 14px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow-sm);
+      width: fit-content;
+    }
+    .name-bar-avatar {
+      width: 24px; height: 24px;
+      background: linear-gradient(135deg, var(--purple-1), var(--pink));
+      border-radius: 50%;
+      display: grid; place-items: center;
+      font-size: .75rem;
+      color: #fff;
+      flex-shrink: 0;
+    }
+    .name-bar-text {
+      font-family: var(--font-display);
+      font-size: .78rem;
+      font-weight: 700;
+      color: var(--text-1);
+    }
+    .name-bar-roll {
+      font-size: .68rem;
+      font-weight: 600;
+      color: var(--text-3);
+      margin-left: 2px;
+    }
+
+    /* ── Card ── */
+    .card {
+      background: var(--bg-card);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 26px 22px;
+      box-shadow: var(--shadow);
+    }
+    .card + .card { margin-top: 14px; }
+
+    /* ── Hero ── */
+    .hero { text-align: center; padding: 12px 0 30px; }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: linear-gradient(135deg, var(--purple-dim), #f5d0fe30);
+      border: 1.5px solid var(--border);
+      color: var(--purple-1);
+      font-size: .7rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      padding: 6px 14px;
+      border-radius: 20px;
+      margin-bottom: 20px;
+    }
+    .hero h1 {
+      font-family: var(--font-display);
+      font-size: 2.3rem;
+      font-weight: 800;
+      line-height: 1.1;
+      color: var(--text-1);
+      margin-bottom: 14px;
+      letter-spacing: -.02em;
+    }
+    .hero h1 em {
+      font-style: normal;
+      background: linear-gradient(135deg, var(--purple-1), var(--pink));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero p {
+      font-size: .95rem;
+      color: var(--text-2);
+      max-width: 320px;
+      margin: 0 auto;
+      line-height: 1.65;
+      font-weight: 400;
+    }
+
+    /* ── Form ── */
+    .form-group { margin-top: 6px; }
+    .form-label {
+      display: block;
+      font-size: .75rem;
+      font-weight: 700;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      color: var(--text-3);
+      margin-bottom: 8px;
+    }
+    .form-input {
+      width: 100%;
+      background: var(--bg);
+      border: 2px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-1);
+      font-family: var(--font-display);
+      font-size: 1.05rem;
+      font-weight: 700;
+      padding: 15px 18px;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      -webkit-appearance: none;
+    }
+    .form-input::placeholder { color: var(--text-3); font-weight: 400; letter-spacing: 0; text-transform: none; font-family: var(--font-body); font-size: .95rem; }
+    .form-input:focus {
+      border-color: var(--purple-1);
+      box-shadow: 0 0 0 4px var(--purple-dim);
+    }
+
+    /* ── Primary Button ── */
+    .btn-primary {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: linear-gradient(135deg, var(--purple-1), var(--pink));
+      border: none;
+      border-radius: var(--radius-sm);
+      color: #fff;
+      font-family: var(--font-display);
+      font-size: 1rem;
+      font-weight: 700;
+      padding: 16px 24px;
+      cursor: pointer;
+      transition: opacity .2s, transform .15s, box-shadow .2s;
+      margin-top: 16px;
+      letter-spacing: .02em;
+      box-shadow: 0 6px 24px #7c3aed40;
+      -webkit-appearance: none;
+    }
+    .btn-primary:hover { opacity: .92; transform: translateY(-1px); box-shadow: 0 10px 30px #7c3aed55; }
+    .btn-primary:active { transform: translateY(0); }
+    .btn-primary:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+
+    /* ── Profile Card ── */
+    .profile-card {
+      background: linear-gradient(135deg, var(--purple-1), var(--violet));
+      border-radius: var(--radius);
+      padding: 22px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 12px 40px #7c3aed40;
+    }
+    .profile-card::before {
+      content: '';
+      position: absolute;
+      top: -50px; right: -50px;
+      width: 180px; height: 180px;
+      background: radial-gradient(circle, #ffffff25 0%, transparent 70%);
+    }
+    .profile-card::after {
+      content: '';
+      position: absolute;
+      bottom: -30px; left: -30px;
+      width: 120px; height: 120px;
+      background: radial-gradient(circle, #e879f920 0%, transparent 70%);
+    }
+    .profile-avatar {
+      width: 52px; height: 52px;
+      background: rgba(255,255,255,.2);
+      border: 2px solid rgba(255,255,255,.3);
+      border-radius: 50%;
+      display: grid; place-items: center;
+      font-size: 1.3rem;
+      margin-bottom: 12px;
+      backdrop-filter: blur(4px);
+    }
+    .profile-name {
+      font-family: var(--font-display);
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 8px;
+      letter-spacing: -.01em;
+    }
+    .profile-meta { display: flex; flex-wrap: wrap; gap: 7px; }
+    .meta-chip {
+      font-size: .72rem;
+      font-weight: 600;
+      padding: 4px 11px;
+      border-radius: 20px;
+      background: rgba(255,255,255,.15);
+      border: 1px solid rgba(255,255,255,.2);
+      color: rgba(255,255,255,.85);
+      backdrop-filter: blur(4px);
+    }
+    .meta-chip b { color: #fff; }
+
+    /* ── Section heading ── */
+    .section-heading {
+      font-family: var(--font-display);
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--text-3);
+      margin: 26px 0 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-heading::after {
+      content: '';
+      flex: 1;
+      height: 1.5px;
+      background: linear-gradient(90deg, var(--border), transparent);
+    }
+
+    /* ── Course Cards ── */
+    .course-grid { display: flex; flex-direction: column; gap: 10px; }
+    .course-card {
+      background: var(--bg-card);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 16px 18px;
+      cursor: pointer;
+      transition: all .2s cubic-bezier(.22,1,.36,1);
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      box-shadow: var(--shadow-sm);
+    }
+    .course-card:hover {
+      border-color: var(--purple-1);
+      background: var(--purple-light);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow);
+    }
+    .course-icon {
+      width: 44px; height: 44px;
+      background: var(--purple-light);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      display: grid; place-items: center;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+      transition: background .2s;
+    }
+    .course-card:hover .course-icon { background: var(--purple-dim); }
+    .course-info { flex: 1; min-width: 0; }
+    .course-code {
+      font-family: var(--font-display);
+      font-size: .72rem;
+      font-weight: 800;
+      color: var(--purple-1);
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+    .course-name {
+      font-family: var(--font-display);
+      font-size: .97rem;
+      font-weight: 700;
+      color: var(--text-1);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 2px;
+    }
+    .course-types { display: flex; gap: 5px; margin-top: 6px; flex-wrap: wrap; }
+    .type-pill {
+      font-size: .65rem;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 10px;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+    .type-pill.lab  { background: #d1fae5; border: 1px solid #6ee7b7; color: #065f46; }
+    .type-pill.asgn { background: #fef3c7; border: 1px solid #fcd34d; color: #78350f; }
+    .course-arrow { color: var(--text-3); font-size: 1.2rem; transition: color .2s, transform .2s; }
+    .course-card:hover .course-arrow { color: var(--purple-1); transform: translateX(3px); }
+
+    /* ── Type Selector ── */
+    .type-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 8px; }
+    .type-card {
+      background: var(--bg);
+      border: 2px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 22px 14px;
+      cursor: pointer;
+      text-align: center;
+      transition: all .2s cubic-bezier(.22,1,.36,1);
+      box-shadow: var(--shadow-sm);
+    }
+    .type-card:hover {
+      border-color: var(--purple-1);
+      background: var(--purple-light);
+      transform: translateY(-3px);
+      box-shadow: var(--shadow);
+    }
+    .type-icon-big { font-size: 1.9rem; margin-bottom: 10px; }
+    .type-label {
+      font-family: var(--font-display);
+      font-size: .9rem;
+      font-weight: 800;
+      color: var(--text-1);
+    }
+    .type-sublabel { font-size: .7rem; color: var(--text-3); margin-top: 4px; font-weight: 500; }
+
+    /* ── Context bar ── */
+    .context-bar {
+      background: var(--bg-card);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow-sm);
+      flex-wrap: wrap;
+    }
+    .context-bar .cc {
+      font-family: var(--font-display);
+      font-size: .7rem;
+      font-weight: 800;
+      color: var(--purple-1);
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      background: var(--purple-light);
+      padding: 3px 9px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    .context-bar .cn {
+      font-family: var(--font-display);
+      font-size: .88rem;
+      font-weight: 700;
+      color: var(--text-1);
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .ctx-type-pill {
+      font-size: .65rem;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 10px;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      white-space: nowrap;
+    }
+    .ctx-type-pill.lab  { background: #d1fae5; border: 1px solid #6ee7b7; color: #065f46; }
+    .ctx-type-pill.asgn { background: #fef3c7; border: 1px solid #fcd34d; color: #78350f; }
+
+    /* ── Score Ring ── */
+    .score-section { text-align: center; padding: 8px 0 24px; }
+    .ring-wrap {
+      position: relative;
+      width: 168px; height: 168px;
+      margin: 0 auto 12px;
+      filter: drop-shadow(0 8px 24px #7c3aed28);
+    }
+    .ring-svg { transform: rotate(-90deg); }
+    .ring-bg { fill: none; stroke: var(--border); stroke-width: 10; }
+    .ring-fg {
+      fill: none;
+      stroke-width: 10;
+      stroke-linecap: round;
+      transition: stroke-dashoffset 1.3s cubic-bezier(.4,0,.2,1);
+    }
+    .ring-text {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+    }
+    .ring-score {
+      font-family: var(--font-display);
+      font-size: 2.8rem;
+      font-weight: 800;
+      line-height: 1;
+      background: linear-gradient(135deg, var(--purple-1), var(--pink));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .ring-denom { font-size: .75rem; color: var(--text-3); margin-top: 2px; font-weight: 600; }
+    .ring-grade {
+      font-family: var(--font-display);
+      font-size: .7rem;
+      font-weight: 800;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      padding: 4px 11px;
+      border-radius: 12px;
+      margin-top: 6px;
+    }
+    .grade-O { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
+    .grade-A { background: var(--purple-light); color: var(--purple-1); border: 1px solid var(--border); }
+    .grade-B { background: #fef3c7; color: #78350f; border: 1px solid #fcd34d; }
+    .grade-C { background: #ffedd5; color: #7c2d12; border: 1px solid #fdba74; }
+    .grade-F { background: #ffe4e6; color: #9f1239; border: 1px solid #fda4af; }
+    .score-title {
+      font-family: var(--font-display);
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--text-3);
+      margin-top: 4px;
+    }
+
+    /* ── Stats Row ── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 18px;
+    }
+    .stat-box {
+      background: var(--bg-card);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 14px 10px;
+      text-align: center;
+      box-shadow: var(--shadow-sm);
+    }
+    .stat-val {
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--purple-1);
+    }
+    .stat-label {
+      font-size: .62rem;
+      font-weight: 700;
+      color: var(--text-3);
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      margin-top: 3px;
+    }
+
+    /* ── Rubric Rows ── */
+    .rubric-list { display: flex; flex-direction: column; gap: 12px; }
+    .rubric-row {
+      background: var(--bg-card);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 16px 18px;
+      box-shadow: var(--shadow-sm);
+      animation: fadeUp .4s ease both;
+    }
+    .rubric-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 10px;
+      gap: 8px;
+    }
+    .rubric-name {
+      font-family: var(--font-display);
+      font-size: .9rem;
+      font-weight: 700;
+      color: var(--text-1);
+      flex: 1;
+      min-width: 0;
+    }
+    .rubric-score {
+      font-family: var(--font-display);
+      font-size: 1rem;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+    .rubric-score .mark  { font-size: 1.2rem; }
+    .rubric-score .denom { font-size: .75rem; color: var(--text-3); }
+    .progress-track {
+      height: 8px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      border-radius: 10px;
+      transition: width 1s cubic-bezier(.4,0,.2,1);
+    }
+    .progress-pct {
+      font-size: .7rem;
+      font-weight: 600;
+      color: var(--text-3);
+      text-align: right;
+      margin-top: 5px;
+    }
+
+    /* ── Loading Overlay ── */
+    .loading-overlay {
+      position: fixed; inset: 0;
+      background: rgba(248,245,255,.8);
+      z-index: 999;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      backdrop-filter: blur(8px);
+    }
+    .loading-overlay.show { display: flex; }
+    .spinner-wrap {
+      width: 56px; height: 56px;
+      background: var(--bg-card);
+      border-radius: 16px;
+      display: grid; place-items: center;
+      box-shadow: var(--shadow);
+    }
+    .spinner {
+      width: 28px; height: 28px;
+      border: 3px solid var(--border);
+      border-top-color: var(--purple-1);
+      border-radius: 50%;
+      animation: spin .75s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text {
+      font-family: var(--font-display);
+      font-size: .9rem;
+      font-weight: 700;
+      color: var(--text-2);
+    }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed;
+      bottom: 24px; bottom: calc(24px + env(safe-area-inset-bottom));
+      left: 50%;
+      transform: translateX(-50%) translateY(110px);
+      background: #fff0f3;
+      border: 1.5px solid #fda4af;
+      color: #9f1239;
+      font-family: var(--font-display);
+      font-size: .86rem;
+      font-weight: 700;
+      padding: 12px 22px;
+      border-radius: 30px;
+      z-index: 1000;
+      white-space: nowrap;
+      transition: transform .35s cubic-bezier(.34,1.56,.64,1);
+      max-width: calc(100vw - 32px);
+      text-align: center;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* ── Info bar ── */
+    .info-bar {
+      background: var(--purple-light);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 13px 16px;
+      font-size: .8rem;
+      color: var(--text-2);
+      margin-top: 14px;
+      display: flex;
+      gap: 9px;
+      line-height: 1.55;
+    }
+    .info-bar .icon { flex-shrink: 0; }
+
+    /* ── Footer ── */
+    .footer {
+      text-align: center;
+      padding-top: 28px;
+      font-size: .7rem;
+      color: var(--text-3);
+      font-weight: 600;
+      letter-spacing: .03em;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 380px) {
+      .hero h1 { font-size: 1.9rem; }
+      .type-grid { grid-template-columns: 1fr; }
+      .stats-row { grid-template-columns: 1fr 1fr; }
+      #app { padding: 12px 12px 80px; }
+    }
+    @media (max-width: 320px) {
+      .hero h1 { font-size: 1.7rem; }
+      .stats-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner-wrap"><div class="spinner"></div></div>
+  <div class="loading-text" id="loadingText">Fetching data…</div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<div id="app">
+
+  <!-- Header (shown on all views) -->
+  <header class="header">
+    <div class="logo">
+      <div class="logo-icon">🎓</div>
+      My<span class="logo-em">Mark</span>
+    </div>
+    <div class="header-pill">Mark Portal</div>
+  </header>
+
+  <!-- ════════════════════════════ -->
+  <!-- VIEW 1 — Landing            -->
+  <!-- ════════════════════════════ -->
+  <div class="view active" id="view-landing">
+
+    <div class="hero">
+      <div class="hero-badge">✦ Student Mark Portal</div>
+      <h1>Check Your<br /><em>Marks with Rubrics</em></h1>
+      <p></p>
+    </div>
+
+    <div class="card">
+      <div class="form-group">
+        <label class="form-label" for="rollInput">🔢 Your Roll Number</label>
+        <input
+          id="rollInput"
+          class="form-input"
+          type="text"
+          placeholder="e.g. 23CS001"
+          autocomplete="off"
+          autocapitalize="characters"
+          autocorrect="off"
+          spellcheck="false"
+          inputmode="text"
+        />
+      </div>
+      <button class="btn-primary" id="btnFetch" onclick="fetchStudent()">
+        <span>🚀</span> View My Marks
+      </button>
+    </div>
+
+    <div class="info-bar">
+      <span class="icon">💡</span>
+      <span>Enter your Roll Number exactly as given by your institution. Contact faculty if you face any issues.</span>
+    </div>
+
+    <div class="footer">@NanJoni Technologies</div>
+  </div>
+
+  <!-- ════════════════════════════ -->
+  <!-- VIEW 2 — Dashboard          -->
+  <!-- ════════════════════════════ -->
+  <div class="view" id="view-dashboard">
+
+    <button class="btn-back" onclick="goTo('landing')">← Back</button>
+
+    <div class="profile-card">
+      <div class="profile-avatar">👤</div>
+      <div class="profile-name" id="profileName">—</div>
+      <div class="profile-meta">
+        <div class="meta-chip">Roll: <b id="profileRoll">—</b></div>
+        <div class="meta-chip">Reg: <b id="profileReg">—</b></div>
+      </div>
+    </div>
+
+    <div class="section-heading">📚 Your Courses</div>
+    <div class="course-grid" id="courseGrid"></div>
+
+  </div>
+
+  <!-- ════════════════════════════ -->
+  <!-- VIEW 3 — Type Picker        -->
+  <!-- ════════════════════════════ -->
+  <div class="view" id="view-typepicker">
+
+    <button class="btn-back" onclick="goTo('dashboard')">← Back</button>
+
+    <!-- Student name bar -->
+    <div class="name-bar">
+      <div class="name-bar-avatar">👤</div>
+      <span class="name-bar-text" id="nameChipTypepicker">—</span>
+      <span class="name-bar-roll" id="rollChipTypepicker"></span>
+    </div>
+
+    <div class="card">
+      <div style="font-family:var(--font-display);font-size:1.1rem;font-weight:800;color:var(--text-1)" id="typePickCourseCode"></div>
+      <div style="font-size:.88rem;color:var(--text-2);font-weight:500;margin-top:4px" id="typePickCourseName"></div>
+
+      <div class="section-heading" style="margin-top:22px">Select Assessment Type</div>
+      <div class="type-grid" id="typeGrid"></div>
+    </div>
+
+  </div>
+
+  <!-- ════════════════════════════ -->
+  <!-- VIEW 4 — Marks Detail       -->
+  <!-- ════════════════════════════ -->
+  <div class="view" id="view-marks">
+
+    <button class="btn-back" onclick="goTo('typepicker')">← Back</button>
+
+    <!-- Student name bar -->
+    <div class="name-bar">
+      <div class="name-bar-avatar">👤</div>
+      <span class="name-bar-text" id="nameChipMarks">—</span>
+      <span class="name-bar-roll" id="rollChipMarks"></span>
+    </div>
+
+    <div class="context-bar">
+      <span class="cc" id="ctxCode"></span>
+      <span class="cn" id="ctxName"></span>
+      <span class="ctx-type-pill" id="ctxType"></span>
+    </div>
+
+    <!-- Score Ring -->
+    <div class="score-section">
+      <div class="ring-wrap">
+        <svg class="ring-svg" viewBox="0 0 168 168" width="168" height="168">
+          <circle class="ring-bg" cx="84" cy="84" r="74"/>
+          <circle class="ring-fg" id="ringFg" cx="84" cy="84" r="74"
+            stroke="url(#ringGrad)"
+            stroke-dasharray="464.96"
+            stroke-dashoffset="464.96"
+          />
+          <defs>
+            <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%"   stop-color="#7c3aed"/>
+              <stop offset="100%" stop-color="#d946ef"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <div class="ring-text">
+          <div class="ring-score" id="ringScore">—</div>
+          <div class="ring-denom">out of 100</div>
+          <div class="ring-grade" id="ringGrade"></div>
+        </div>
+      </div>
+      <div class="score-title">Overall Score</div>
+    </div>
+
+    <div class="stats-row" id="statsRow"></div>
+
+    <div class="section-heading" style="margin-top:24px">📋 Rubric Breakdown</div>
+    <div class="rubric-list" id="rubricList"></div>
+
+    <div class="footer" style="margin-top:28px">Marks displayed are subject to faculty verification.</div>
+  </div>
+
+</div><!-- /app -->
+
+<script>
+// ═══════════════════════════════════════════
+//  CONFIG
+// ═══════════════════════════════════════════
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbwTlYlG8a_hhw_49ypoCLRp9YVsn0Q-uR4tuph-8dRKrRNfurSF7O15sLHyN9-Acgmd/exec';
+
+// ═══════════════════════════════════════════
+//  State
+// ═══════════════════════════════════════════
+const state = {
+  student  : null,
+  courses  : [],
+  selected : { courseCode: '', courseName: '', type: '', types: [] }
+};
+
+// ═══════════════════════════════════════════
+//  Type metadata — sheet value → display info
+//  Sheet stores: "lab" or "assignment"
+// ═══════════════════════════════════════════
+const TYPE_META = {
+  'lab'        : { label: 'Model Lab',  icon: '🔬', sub: 'Laboratory Evaluation', pillCls: 'lab'  },
+  'assignment' : { label: 'Assignment', icon: '📝', sub: 'Written Assignment',     pillCls: 'asgn' },
+};
+function typeMeta(sheetVal) {
+  return TYPE_META[(sheetVal || '').toLowerCase().trim()] ||
+         { label: sheetVal, icon: '📋', sub: 'Assessment', pillCls: 'asgn' };
+}
+
+// ═══════════════════════════════════════════
+//  Navigation
+// ═══════════════════════════════════════════
+function goTo(viewName) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  const ids = {
+    landing    : 'view-landing',
+    dashboard  : 'view-dashboard',
+    typepicker : 'view-typepicker',
+    marks      : 'view-marks'
+  };
+  const el = document.getElementById(ids[viewName]);
+  if (el) el.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ═══════════════════════════════════════════
+//  API Helper
+// ═══════════════════════════════════════════
+async function callAPI(params) {
+  const url = new URL(GAS_URL);
+  Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
+  const res = await fetch(url.toString(), { redirect: 'follow' });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  return res.json();
+}
+
+// ═══════════════════════════════════════════
+//  Loading / Toast
+// ═══════════════════════════════════════════
+function showLoading(msg) {
+  document.getElementById('loadingText').textContent = msg || 'Fetching data…';
+  document.getElementById('loadingOverlay').classList.add('show');
+}
+function hideLoading() {
+  document.getElementById('loadingOverlay').classList.remove('show');
+}
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3800);
+}
+
+// ═══════════════════════════════════════════
+//  Helper — populate name bars on all pages
+// ═══════════════════════════════════════════
+function setStudentNameBars(name, rollNo) {
+  // Dashboard profile card
+  document.getElementById('profileName').textContent = name  || '—';
+  document.getElementById('profileRoll').textContent = rollNo || '—';
+
+  // Type picker page
+  document.getElementById('nameChipTypepicker').textContent = name   || '—';
+  document.getElementById('rollChipTypepicker').textContent = rollNo ? '· ' + rollNo : '';
+
+  // Marks page
+  document.getElementById('nameChipMarks').textContent = name   || '—';
+  document.getElementById('rollChipMarks').textContent = rollNo ? '· ' + rollNo : '';
+}
+
+// ═══════════════════════════════════════════
+//  STEP 1 — Fetch Student + Courses
+// ═══════════════════════════════════════════
+async function fetchStudent() {
+  const rollNo = document.getElementById('rollInput').value.trim().toUpperCase();
+  if (!rollNo) { showToast('⚠️ Please enter your Roll Number'); return; }
+
+  document.getElementById('btnFetch').disabled = true;
+  showLoading('Looking up your profile…');
+
+  try {
+    const data = await callAPI({ action: 'getStudent', rollNo });
+
+    if (!data.success) {
+      showToast('❌ ' + (data.message || 'Student not found'));
+      return;
+    }
+
+    state.student = data.student;
+
+    // Populate profile info everywhere
+    setStudentNameBars(data.student.name, data.student.rollNo || rollNo);
+    document.getElementById('profileReg').textContent = data.student.regNo || '—';
+
+    // Courses come from GAS with real types from RubricsDB — no hardcoded defaults
+    const courses = (data.courses || []).map(c => ({
+      code  : c.code  || c.courseCode  || '',
+      name  : c.name  || c.courseName  || '',
+      types : Array.isArray(c.types) && c.types.length ? c.types : []
+    }));
+
+    if (!courses.length) {
+      showToast('⚠️ No courses found for this student.');
+      return;
+    }
+
+    state.courses = courses;
+    renderCourseGrid(courses);
+    goTo('dashboard');
+
+  } catch (err) {
+    console.error(err);
+    showToast('🔌 Connection error — check GAS URL or network.');
+  } finally {
+    hideLoading();
+    document.getElementById('btnFetch').disabled = false;
+  }
+}
+
+// ═══════════════════════════════════════════
+//  STEP 2 — Render course grid
+//  Pills show actual types from RubricsDB:
+//  only lab → only Lab pill
+//  only assignment → only Assignment pill
+//  both → both pills
+// ═══════════════════════════════════════════
+const COURSE_ICONS = ['📖','🔬','🖥️','⚡','🧪','📐','🛠️','🎯','💡','🔧'];
+
+function renderCourseGrid(courses) {
+  document.getElementById('courseGrid').innerHTML = courses.map((c, i) => {
+    const typePills = c.types.map(t => {
+      const m = typeMeta(t);
+      return `<span class="type-pill ${m.pillCls}">${escHtml(m.label)}</span>`;
+    }).join('');
+
+    const typesEncoded = encodeURIComponent(JSON.stringify(c.types));
+    return `
+    <div class="course-card" onclick="selectCourse('${escAttr(c.code)}','${escAttr(c.name)}','${typesEncoded}')">
+      <div class="course-icon">${COURSE_ICONS[i % COURSE_ICONS.length]}</div>
+      <div class="course-info">
+        <div class="course-code">${escHtml(c.code)}</div>
+        <div class="course-name">${escHtml(c.name || c.code)}</div>
+        <div class="course-types">${typePills || '<span class="type-pill asgn" style="opacity:.5">No types</span>'}</div>
+      </div>
+      <div class="course-arrow">›</div>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════
+//  STEP 3 — Course → Type picker
+//  Only shows types that exist in RubricsDB
+// ═══════════════════════════════════════════
+function selectCourse(code, name, typesEncoded) {
+  let types;
+  try { types = JSON.parse(decodeURIComponent(typesEncoded)); }
+  catch (_) { types = []; }
+
+  state.selected.courseCode = code;
+  state.selected.courseName = name;
+  state.selected.types      = types;
+
+  document.getElementById('typePickCourseCode').textContent = code;
+  document.getElementById('typePickCourseName').textContent = name || code;
+
+  // Render only the types that actually exist in RubricsDB for this course
+  document.getElementById('typeGrid').innerHTML = types.map(t => {
+    const m = typeMeta(t);
+    return `
+    <div class="type-card" onclick="selectType('${escAttr(t)}')">
+      <div class="type-icon-big">${m.icon}</div>
+      <div class="type-label">${m.label}</div>
+      <div class="type-sublabel">${m.sub}</div>
+    </div>`;
+  }).join('');
+
+  // If only one type exists, skip picker and go straight to marks
+  if (types.length === 1) {
+    selectType(types[0]);
+    return;
+  }
+
+  goTo('typepicker');
+}
+
+// ═══════════════════════════════════════════
+//  STEP 4 — Type selected → fetch marks
+//  sheetType is the raw value from RubricsDB
+//  e.g. "lab" or "assignment" — sent as-is
+// ═══════════════════════════════════════════
+async function selectType(sheetType) {
+  state.selected.type = sheetType;
+  showLoading('Loading your marks…');
+
+  try {
+    const data = await callAPI({
+      action     : 'getMarks',
+      rollNo     : state.student.rollNo,
+      courseCode : state.selected.courseCode,
+      markType   : sheetType   // raw sheet value — no mapping needed
+    });
+
+    if (!data.success) {
+      hideLoading();
+      showToast('❌ ' + (data.message || 'Marks not found'));
+      return;
+    }
+
+    renderMarks(data);
+    goTo('marks');
+
+  } catch (err) {
+    console.error(err);
+    showToast('🔌 Failed to load marks. Try again.');
+  } finally {
+    hideLoading();
+  }
+}
+
+// ═══════════════════════════════════════════
+//  Render marks view
+// ═══════════════════════════════════════════
+function renderMarks(data) {
+  // Context bar
+  document.getElementById('ctxCode').textContent = state.selected.courseCode;
+  document.getElementById('ctxName').textContent = state.selected.courseName;
+  const m    = typeMeta(state.selected.type);
+  const ctxT = document.getElementById('ctxType');
+  ctxT.textContent = m.label;
+  ctxT.className   = 'ctx-type-pill ' + m.pillCls;
+
+  // Normalize rubric items — support both GAS response shapes
+  let rubricItems = [];
+  const score = data.outOf100 ?? data.total ?? 0;
+
+  if (Array.isArray(data.rubrics)) {
+    rubricItems = data.rubrics.map(r => {
+      // Shape A: { rubricKey, rubricName, maxMark } + data.marks map
+      if (r.rubricKey && data.marks) {
+        const scored  = Number(data.marks[r.rubricKey] ?? 0);
+        const maxMark = Number(r.maxMark ?? 0);
+        const pct     = maxMark > 0 ? Math.round((scored / maxMark) * 100) : 0;
+        return { name: r.rubricName || r.rubricKey, scored, maxMark, percent: pct };
+      }
+      // Shape B: { name/rubricName, scored/mark, maxMark/max, percent }
+      const scored  = Number(r.scored ?? r.mark ?? 0);
+      const maxMark = Number(r.maxMark ?? r.max ?? 0);
+      const pct     = r.percent ?? (maxMark > 0 ? Math.round((scored / maxMark) * 100) : 0);
+      return { name: r.name || r.rubricName || '—', scored, maxMark, percent: pct };
+    });
+  }
+
+  // Score ring
+  document.getElementById('ringScore').textContent = score;
+  animateRing(score);
+  const { letter, cls } = gradeFromScore(score);
+  const gradeEl = document.getElementById('ringGrade');
+  gradeEl.textContent = letter;
+  gradeEl.className   = 'ring-grade ' + cls;
+
+  // Stats row
+  const passCount = rubricItems.filter(r => r.percent >= 50).length;
+  const rawTotal  = data.rawTotal ?? rubricItems.reduce((s, r) => s + r.scored, 0);
+  const rawMax    = data.maxTotal ?? rubricItems.reduce((s, r) => s + r.maxMark, 0);
+
+  document.getElementById('statsRow').innerHTML = `
+    <div class="stat-box">
+      <div class="stat-val">${rawTotal}<span style="font-size:.65em;color:var(--text-3)">/${rawMax}</span></div>
+      <div class="stat-label">Raw Total</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-val">${rubricItems.length}</div>
+      <div class="stat-label">Rubrics</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-val" style="color:var(--green)">${passCount}/${rubricItems.length}</div>
+      <div class="stat-label">Passed</div>
+    </div>`;
+
+  // Rubric breakdown
+  document.getElementById('rubricList').innerHTML = rubricItems.map((r, i) => {
+    const color = progressColor(r.percent);
+    return `
+    <div class="rubric-row" style="animation-delay:${i * 70}ms">
+      <div class="rubric-header">
+        <div class="rubric-name">${escHtml(r.name)}</div>
+        <div class="rubric-score" style="color:${color}">
+          <span class="mark">${r.scored}</span>
+          <span class="denom"> / ${r.maxMark}</span>
+        </div>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="prog-${i}" style="width:0%;background:linear-gradient(90deg,${color}90,${color})"></div>
+      </div>
+      <div class="progress-pct">${r.percent}%</div>
+    </div>`;
+  }).join('');
+
+  // Animate progress bars after paint
+  setTimeout(() => {
+    rubricItems.forEach((r, i) => {
+      const el = document.getElementById('prog-' + i);
+      if (el) el.style.width = r.percent + '%';
+    });
+  }, 120);
+}
+
+// ═══════════════════════════════════════════
+//  Ring animation
+// ═══════════════════════════════════════════
+function animateRing(score) {
+  const circ   = 2 * Math.PI * 74; // ≈ 464.96
+  const offset = circ - (Math.min(score, 100) / 100) * circ;
+  const ring   = document.getElementById('ringFg');
+  ring.style.transition = 'none';
+  ring.style.strokeDashoffset = circ;
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    ring.style.transition = 'stroke-dashoffset 1.3s cubic-bezier(.4,0,.2,1)';
+    ring.style.strokeDashoffset = offset;
+  }));
+}
+
+// ═══════════════════════════════════════════
+//  Helpers
+// ═══════════════════════════════════════════
+function gradeFromScore(s) {
+  if (s >= 91) return { letter: 'O · Outstanding',      cls: 'grade-O' };
+  if (s >= 81) return { letter: 'A+ · Excellent',       cls: 'grade-A' };
+  if (s >= 71) return { letter: 'A · Very Good',        cls: 'grade-A' };
+  if (s >= 61) return { letter: 'B+ · Good',            cls: 'grade-B' };
+  if (s >= 51) return { letter: 'B · Average',          cls: 'grade-B' };
+  if (s >= 40) return { letter: 'C · Satisfactory',     cls: 'grade-C' };
+  return             { letter: 'F · Needs Improvement', cls: 'grade-F' };
+}
+
+function progressColor(pct) {
+  if (pct >= 75) return '#7c3aed';
+  if (pct >= 50) return '#0ea5e9';
+  if (pct >= 35) return '#f59e0b';
+  return '#f43f5e';
+}
+
+function escHtml(s) {
+  return String(s ?? '')
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function escAttr(s) {
+  return String(s ?? '').replace(/'/g,'&#39;').replace(/"/g,'&quot;');
+}
+
+// Enter key on roll input
+document.getElementById('rollInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') fetchStudent();
+});
+</script>
+</body>
+</html>
